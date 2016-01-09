@@ -20,11 +20,10 @@ assert ts.connected
 # Put the infrared sensor into proximity mode
 ir.mode = 'IR-PROX'
 
-def start():
+def start(dc):
     for m in motors:
-        print "starting", m
         m.reset()
-        m.run_forever(duty_cycle_sp=75, polarity='normal')
+        m.run_forever(duty_cycle_sp=dc, polarity='normal')
 
 def stop():
     for m in motors:
@@ -54,7 +53,8 @@ def backup():
         time.sleep(0.1)
 
 # Start all motors
-start()
+dc = 50
+start(dc)
 
 btn = Button()
 while not btn.any():
@@ -62,29 +62,25 @@ while not btn.any():
         # Rear touch sensor pressed, maybe we're stuck, backup
         backup()
         turn()
-        start()
+        start(50)
         continue
 
     # Read proximity sensor
     d = ir.value()
     print d
 
+    start(dc)
     if d > 70:
         # Full speed
         dc = 90
-    elif d > 50:
+    elif d > 40:
         # Half speed, obstacle ahead
-        dc = 30
+        dc = 45
     else:
         # Obstacle too close, turn
         stop()
         Sound.speak('Ostacolo rilevato').wait()
         turn()
-        start()
-
-    # Adjust motor speed
-    for m in motors:
-        m.duty_cycle_sp = dc
 
     time.sleep(0.1)
 
